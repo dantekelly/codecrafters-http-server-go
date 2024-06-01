@@ -81,8 +81,9 @@ func handleConnection(c net.Conn) {
 
 	for _, header := range headers {
 		headerSlice := strings.Split(header, ": ")
+		key := strings.ToLower(headerSlice[0])
 
-		headersMap[headerSlice[0]] = headerSlice[1]
+		headersMap[key] = headerSlice[1]
 	}
 
 	request := Request{
@@ -90,10 +91,10 @@ func handleConnection(c net.Conn) {
 		path:    requestSlice[1],
 		version: requestSlice[2],
 		header: RequestHeader{
-			host:           headersMap["Host"],
-			agent:          headersMap["User-Agent"],
-			accept:         headersMap["Accept"],
-			acceptEncoding: headersMap["Accept-Encoding"],
+			host:           headersMap["host"],
+			agent:          headersMap["user-agent"],
+			accept:         headersMap["accept"],
+			acceptEncoding: headersMap["accept-encoding"],
 		},
 		body: body,
 	}
@@ -139,8 +140,8 @@ func formatResponse(r Response, e string) string {
 	if r.body != "" {
 		response += fmt.Sprintf("Content-Length: %d\r\n", len(r.body))
 	}
-	if e == "gzip" {
-		response += fmt.Sprintf("Content-Encoding: %s\r\n", e)
+	if strings.Contains(e, "gzip") {
+		response += fmt.Sprintf("Content-Encoding: %s\r\n", "gzip")
 	}
 
 	// Add a blank line to indicate the end of headers
