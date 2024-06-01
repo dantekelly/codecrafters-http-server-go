@@ -15,6 +15,10 @@ func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	log.Println("Logs from your program will appear here!")
 
+	// Gather arguments
+	args := os.Args[1:]
+	log.Printf("Arguments: %v\n", args)
+
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		log.Println("Failed to bind to port 4221")
@@ -45,7 +49,6 @@ func handleConnection(c net.Conn) {
 	}
 
 	rawRequest := strings.Split(string(buf), "\r\n")
-
 	requestSlice := strings.Split(rawRequest[0], " ")
 	headers := rawRequest[1 : len(rawRequest)-2]
 	headersMap := make(map[string]string)
