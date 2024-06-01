@@ -76,6 +76,7 @@ func handleConnection(c net.Conn) {
 	rawRequest := strings.Split(string(buf), "\r\n")
 	requestSlice := strings.Split(rawRequest[0], " ")
 	headers := rawRequest[1 : len(rawRequest)-2]
+	body := rawRequest[len(rawRequest)-1]
 	headersMap := make(map[string]string)
 
 	for _, header := range headers {
@@ -93,7 +94,10 @@ func handleConnection(c net.Conn) {
 			agent:  headersMap["User-Agent"],
 			accept: headersMap["Accept"],
 		},
+		body: body,
 	}
+
+	// log.Printf("Request: %v\n", body)
 
 	handleRoutes(c, request)
 }
@@ -108,6 +112,7 @@ type Request struct {
 	path    string
 	version string
 	header  RequestHeader
+	body    string
 }
 
 func formatRequest(r Request) string {
