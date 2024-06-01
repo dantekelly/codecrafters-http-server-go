@@ -90,9 +90,10 @@ func handleConnection(c net.Conn) {
 		path:    requestSlice[1],
 		version: requestSlice[2],
 		header: RequestHeader{
-			host:   headersMap["Host"],
-			agent:  headersMap["User-Agent"],
-			accept: headersMap["Accept"],
+			host:           headersMap["Host"],
+			agent:          headersMap["User-Agent"],
+			accept:         headersMap["Accept"],
+			acceptEncoding: headersMap["Accept-Encoding"],
 		},
 		body: body,
 	}
@@ -103,9 +104,10 @@ func handleConnection(c net.Conn) {
 }
 
 type RequestHeader struct {
-	host   string
-	agent  string
-	accept string
+	host           string
+	agent          string
+	accept         string
+	acceptEncoding string
 }
 type Request struct {
 	method  string
@@ -126,7 +128,7 @@ type Response struct {
 	body   string
 }
 
-func formatResponse(r Response) string {
+func formatResponse(r Response, e string) string {
 	// Start with the status line
 	response := fmt.Sprintf("HTTP/1.1 %d %s\r\n", r.status, r.reason)
 
@@ -136,6 +138,9 @@ func formatResponse(r Response) string {
 	}
 	if r.body != "" {
 		response += fmt.Sprintf("Content-Length: %d\r\n", len(r.body))
+	}
+	if e == "gzip" {
+		response += fmt.Sprintf("Content-Encoding: %s\r\n", e)
 	}
 
 	// Add a blank line to indicate the end of headers

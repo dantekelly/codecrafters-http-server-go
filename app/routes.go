@@ -18,7 +18,7 @@ func handleRoutes(c net.Conn, request Request) {
 				"Content-Type": "text/plain",
 			},
 			body: route,
-		})
+		}, request.header.acceptEncoding)
 		c.Write([]byte(response))
 	case request.path == "/user-agent":
 		response := formatResponse(Response{
@@ -28,7 +28,7 @@ func handleRoutes(c net.Conn, request Request) {
 				"Content-Type": "text/plain",
 			},
 			body: request.header.agent,
-		})
+		}, "")
 		c.Write([]byte(response))
 	case request.path == "/":
 		response := formatResponse(Response{
@@ -36,7 +36,7 @@ func handleRoutes(c net.Conn, request Request) {
 			reason: "OK",
 			header: map[string]string{},
 			body:   "",
-		})
+		}, "")
 		c.Write([]byte(response))
 	default:
 		if request.method == "POST" {
@@ -62,7 +62,7 @@ func getFileRoute(c net.Conn, path string) {
 			reason: "Not Found",
 			header: map[string]string{},
 			body:   "",
-		})
+		}, "")
 		c.Write([]byte(response))
 		return
 	}
@@ -74,7 +74,7 @@ func getFileRoute(c net.Conn, path string) {
 			"Content-Type": "application/octet-stream",
 		},
 		body: string(file),
-	})
+	}, "")
 
 	c.Write([]byte(r))
 }
@@ -97,7 +97,7 @@ func postFileRoute(c net.Conn, request Request) {
 			reason: "Internal Server Error",
 			header: map[string]string{},
 			body:   "",
-		})
+		}, "")
 		c.Write([]byte(response))
 		return
 	}
@@ -107,6 +107,6 @@ func postFileRoute(c net.Conn, request Request) {
 		reason: "Created",
 		header: map[string]string{},
 		body:   "",
-	})
+	}, "")
 	c.Write([]byte(response))
 }
