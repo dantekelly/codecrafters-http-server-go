@@ -58,35 +58,7 @@ func handleConnection(c net.Conn) {
 	// request := Request{}
 	// log.Printf("Headers: %+v", headersSlice)
 
-	switch {
-	case strings.Contains(request.path, "/echo/"):
-		route := strings.Split(request.path, "/echo/")[1]
-		response := formatResponse(Response{
-			status: 200,
-			reason: "OK",
-			header: map[string]string{
-				"Content-Type": "text/plain",
-			},
-			body: route,
-		})
-		c.Write([]byte(response))
-	case request.path == "/":
-		response := formatResponse(Response{
-			status: 200,
-			reason: "OK",
-			header: map[string]string{},
-			body:   "",
-		})
-		c.Write([]byte(response))
-	default:
-		response := formatResponse(Response{
-			status: 404,
-			reason: "Not Found",
-			header: map[string]string{},
-			body:   "",
-		})
-		c.Write([]byte(response))
-	}
+	handleRoutes(c, request)
 
 }
 
