@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"log"
 	"net"
@@ -130,6 +132,7 @@ type Response struct {
 }
 
 func formatResponse(r Response, e string) string {
+	body := r.body
 	// Start with the status line
 	response := fmt.Sprintf("HTTP/1.1 %d %s\r\n", r.status, r.reason)
 
@@ -137,19 +140,43 @@ func formatResponse(r Response, e string) string {
 	for key, value := range r.header {
 		response += fmt.Sprintf("%s: %s\r\n", key, value)
 	}
-	if r.body != "" {
-		response += fmt.Sprintf("Content-Length: %d\r\n", len(r.body))
-	}
 	if strings.Contains(e, "gzip") {
 		response += fmt.Sprintf("Content-Encoding: %s\r\n", "gzip")
+
+		log.Printf("Body: %+v", body)
+		encodedBody, err := gzipData(body)
+		if err != nil {
+			log.Fatalln("Error occured while encoding data", encodedBody)
+		}
+
+		body = encodedBody
+		log.Printf("String Body: %+v", body)
+	}
+	if body != "" {
+		response += fmt.Sprintf("Content-Length: %d\r\n", len(body))
 	}
 
 	// Add a blank line to indicate the end of headers
 	response += "\r\n"
 
 	if r.body != "" {
-		response += r.body
+		response += body
 	}
 
 	return response
+}
+
+func gzipData(d string) (string, error) {
+	var buf bytes.Buffer
+	w := gzip.NewWriter(&buf)
+
+	_, err := w.Write([]byte(d))
+	if err != nil {
+		return "", err
+	}
+	if err := w.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	return buf.String(), nil
 }
