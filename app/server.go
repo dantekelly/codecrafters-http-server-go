@@ -11,13 +11,38 @@ import (
 	// "os"
 )
 
+var config Config
+
+func init() {
+	directory := ""
+	// Gather arguments
+	args := os.Args[1:]
+	if len(args) > 0 {
+		for i, arg := range args {
+			if arg == "--directory" {
+				if i+1 < len(args) {
+					directory = args[i+1]
+				} else {
+					log.Println("Directory flag provided without a directory")
+				}
+			}
+		}
+	}
+
+	builder := ConfigBuilder{}
+	builder.Directory(directory)
+	cfg, err := builder.Build()
+	if err != nil {
+		log.Println("Failed to build config: ", err.Error())
+		os.Exit(1)
+	}
+
+	config = *cfg
+}
+
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	log.Println("Logs from your program will appear here!")
-
-	// Gather arguments
-	args := os.Args[1:]
-	log.Printf("Arguments: %v\n", args)
 
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
