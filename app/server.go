@@ -47,19 +47,27 @@ func handleConnection(c net.Conn) {
 	rawRequest := strings.Split(string(buf), "\r\n")
 
 	requestSlice := strings.Split(rawRequest[0], " ")
+	headers := rawRequest[1 : len(rawRequest)-2]
+	headersMap := make(map[string]string)
+
+	for _, header := range headers {
+		headerSlice := strings.Split(header, ": ")
+
+		headersMap[headerSlice[0]] = headerSlice[1]
+	}
+
 	request := Request{
 		method:  requestSlice[0],
 		path:    requestSlice[1],
 		version: requestSlice[2],
+		header: RequestHeader{
+			host:   headersMap["Host"],
+			agent:  headersMap["User-Agent"],
+			accept: headersMap["Accept"],
+		},
 	}
-	log.Printf("Request: %+v", request)
-
-	//headersSlice := strings.Split(rawRequest[1], " ")
-	// request := Request{}
-	// log.Printf("Headers: %+v", headersSlice)
 
 	handleRoutes(c, request)
-
 }
 
 type RequestHeader struct {
