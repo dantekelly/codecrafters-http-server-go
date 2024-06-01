@@ -58,12 +58,33 @@ func handleConnection(c net.Conn) {
 	// request := Request{}
 	// log.Printf("Headers: %+v", headersSlice)
 
-	switch request.path {
-	case "/":
-		response := formatResponse(Response{200, "OK"})
+	switch {
+	case strings.Contains(request.path, "/echo/"):
+		route := strings.Split(request.path, "/echo/")[1]
+		response := formatResponse(Response{
+			status: 200,
+			reason: "OK",
+			header: map[string]string{
+				"Content-Type": "text/plain",
+			},
+			body: route,
+		})
+		c.Write([]byte(response))
+	case request.path == "/":
+		response := formatResponse(Response{
+			status: 200,
+			reason: "OK",
+			header: map[string]string{},
+			body:   "",
+		})
 		c.Write([]byte(response))
 	default:
-		response := formatResponse(Response{404, "Not Found"})
+		response := formatResponse(Response{
+			status: 404,
+			reason: "Not Found",
+			header: map[string]string{},
+			body:   "",
+		})
 		c.Write([]byte(response))
 	}
 
@@ -88,11 +109,28 @@ func formatRequest(r Request) string {
 type Response struct {
 	status int
 	reason string
+	header map[string]string
+	body   string
 }
 
 func formatResponse(r Response) string {
-	return fmt.Sprintf("HTTP/1.1 %d %s\r\n\r\n", r.status, r.reason)
-	// fmt.Printf("Content-Length: %d\n", len(body))
-	// fmt.Printf("Content-Type: text/plain\n\n")
-	// fmt.Println(body)
+	// Start with the status line
+	response := fmt.Sprintf("HTTP/1.1 %d %s\r\n", r.status, r.reason)
+
+	// Add headers
+	for key, value := range r.header {
+		response += fmt.Sprintf("%s: %s\r\n", key, value)
+	}
+	if r.body != "" {
+		response += fmt.Sprintf("Content-Length: %d\r\n", len(r.body))
+	}
+
+	// Add a blank line to indicate the end of headers
+	response += "\r\n"
+
+	if r.body != "" {
+		response += r.body
+	}
+
+	return response
 }
